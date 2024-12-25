@@ -43,4 +43,47 @@ const registerUser = asyncHandler(async (req,res)=>{
     )
 })
 
-export {registerUser}
+const generateAccessandRefreshToken = async(userId)=>{
+    const user = await User.findById(userId)
+    // console.log(user);
+    const accessToken = await user.generateAccessToken()
+    const refreshToken = await user.generateRefreshToken()
+    user.refreshToken = refreshToken
+    
+    await user.save({validateBeforeSave: false})
+    return {accessToken, refreshToken}
+}
+const options = {
+    httpOnly: true,
+    secure:true
+}
+const loginUser = asyncHandler(async (req,res)=>{
+    const {email, password} = req.body
+    
+    if(!email || !password){
+        throw new ApiError(400,"email or password field is empty")
+    }
+
+    const user = await User.findOne({email})
+
+    const passwordValid = await user.isPasswordCorrect(password)
+    if(!passwordValid){
+        throw new ApiError(400,"Invalid email or password")
+    }
+
+    const {accessToken, refreshToken} = await generateAccessandRefreshToken(user._id)
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    return res.status(200).cookie("accessToken",accessToken,options).cookie("refreshToken",refreshToken,options).json(
+        new ApiResponse(200,
+            {
+                user: loggedInUser,accessToken,refreshToken
+            },
+            "Logged In Successfully!!!"
+        )
+    )
+
+
+})
+export {registerUser, loginUser}
