@@ -86,4 +86,28 @@ const loginUser = asyncHandler(async (req,res)=>{
 
 
 })
-export {registerUser, loginUser}
+
+const updateUserDetails = asyncHandler(async(req,res)=>{
+    const {username, email} = req.body
+
+    if([username, email].some((fields)=>{
+        fields?.trim()==""
+    })){
+        throw new ApiError(400,"Fields are empty")
+    }
+    const user = await User.findByIdAndUpdate(req.user._id,{
+        $set:{
+            username:username,
+            email:email
+            }
+        },
+        {
+            new:true
+        }
+        ).select("-password ")
+    
+    return res.status(200).json(
+        new ApiResponse(200,user,"Account details updated successfully!!")
+    )
+})
+export {registerUser, loginUser, updateUserDetails}
