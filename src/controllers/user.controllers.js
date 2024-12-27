@@ -137,4 +137,33 @@ const updateUserPfp = asyncHandler(async (req,res)=>{
         )
 
 })
-export {registerUser, loginUser, updateUserDetails,updateUserPfp}
+
+const changeCurrentPassword = asyncHandler(async (req,res)=>{
+    const {oldPassword, newPassword, confirmPassword} = req.body;
+
+    if(!oldPassword && !newPassword && !confirmPassword){
+        throw new ApiError(400,"All fields are required!")
+    }
+    const user = await User.findById(req.user._id);
+    const passCorrect = await user.isPasswordCorrect(oldPassword)
+    if(!passCorrect){
+        throw new ApiError(400,"invalid old password")
+    }
+
+    if(newPassword !== confirmPassword){
+        throw new ApiError(400,"Passwords do not match!")
+    }
+
+    user.password = newPassword;
+    await user.save({validateBeforeSave:false})
+    // const updatedUser = await User.findByIdAndUpdate(user._id,
+    //     {
+    //         $set:{
+    //             password:newPassword
+    //         }
+    //     },
+    //     {new:true}
+    // ).select("-password")
+    return res.status(200).json(new ApiResponse(200,null,"Password updated sucessfully!!!"))
+})
+export {registerUser, loginUser, updateUserDetails,updateUserPfp,changeCurrentPassword}
