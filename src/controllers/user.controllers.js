@@ -2,6 +2,7 @@ import asyncHandler from "../utils/asyncHandler.js"
 import ApiError from "../utils/ApiError.js"
 import ApiResponse from "../utils/ApiResponse.js"
 import { User } from "../models/user.models.js";
+import uploadOnCloudinary from "../utils/cloudinary.js";
 
 const registerUser = asyncHandler(async (req,res)=>{
     // to handle user-controlled inputs we use req.body; this needs to be validated properly.
@@ -111,4 +112,29 @@ const updateUserDetails = asyncHandler(async(req,res)=>{
         new ApiResponse(200,user,"Account details updated successfully!!")
     )
 })
-export {registerUser, loginUser, updateUserDetails}
+
+const updateUserPfp = asyncHandler(async (req,res)=>{
+        const userPfpPath = req.file?.path
+        if(!userPfpPath){
+            throw new ApiError(400,"Add profile picture")
+        }
+        const pfp = await uploadOnCloudinary(userPfpPath)
+
+        if(!pfp.url){
+            throw new ApiError(500,"Error while uploading your file")
+        }
+// you can handle both scenarios (pfp exists or not) in a single findByIdAndUpdate.
+        const user = await User.findByIdAndUpdate(req.user._id,{
+            $set:{
+                pfp:pfp.url
+            }
+        },{
+            new:true
+        }).select("-password")
+    
+        return res.status(200).json(
+            new ApiResponse(200,user,"Profile picture successfully updated!!")
+        )
+
+})
+export {registerUser, loginUser, updateUserDetails,updateUserPfp}
