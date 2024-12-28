@@ -33,4 +33,43 @@ const addBlog = asyncHandler(async (req,res)=>{
         new ApiResponse(200,blog,"Your blog is created successfully!")
     )
 })
-export {addBlog}
+
+const updateBlog = asyncHandler(async(req,res)=>{
+    const {blogId} = req.params
+    if(!blogId){
+        throw new ApiError(400,"Blog id is required!!")
+    }
+    const {title, description} = req.body
+    // ensure atleast one field is provided for update
+    if(!title && !description && !req.file?.path){
+        throw new ApiError(400,"No fields edited, update a field")
+    }
+    let thumPath;
+    if(req.file?.path){
+        thumPath = req.file?.path
+    }
+    const thumb = await uploadOnCloudinary(thumPath)
+    if(!thumb){
+        throw new ApiError(500,"Failed to upload your file!")
+    }
+
+    const newBlog = await Blog.findByIdAndUpdate(blogId,
+        {
+            $set:{
+                title:title,
+                description:description,
+                thumbnail:thumb.url
+            }
+        },
+        {
+            new :true,
+            // to ensure mongoose schema is entaged
+            runValidators:true
+        }
+    )
+    return res.status(200).json(
+        new ApiResponse(200,newBlog,"Your Blog updated successfully:)")
+    )
+
+})
+export {addBlog,updateBlog}
