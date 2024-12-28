@@ -166,4 +166,8 @@ const changeCurrentPassword = asyncHandler(async (req,res)=>{
     // ).select("-password")
     return res.status(200).json(new ApiResponse(200,null,"Password updated sucessfully!!!"))
 })
+
+const updateBookmarks = asyncHandler(async(req, res)=>{
+
+})
 export {registerUser, loginUser, updateUserDetails,updateUserPfp,changeCurrentPassword}
