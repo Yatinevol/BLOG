@@ -45,20 +45,27 @@ const updateBlog = asyncHandler(async(req,res)=>{
         throw new ApiError(400,"No fields edited, update a field")
     }
     let thumPath;
+    let thumb ;
+    let thumbnail ;
     if(req.file?.path){
-        thumPath = req.file?.path
+        try {
+            thumPath = req.file?.path
+            thumb = await uploadOnCloudinary(thumPath)
+            if(!thumb.url){
+                throw new ApiError(500,"Failed to upload your file!")
+            }
+            thumbnail = thumb.url
+        } catch (error) {
+            throw new ApiError(440,error||"kya galat ho gya hai")
+        }
     }
-    const thumb = await uploadOnCloudinary(thumPath)
-    if(!thumb){
-        throw new ApiError(500,"Failed to upload your file!")
-    }
-
+    
     const newBlog = await Blog.findByIdAndUpdate(blogId,
         {
             $set:{
                 title:title,
                 description:description,
-                thumbnail:thumb.url
+                thumbnail
             }
         },
         {
