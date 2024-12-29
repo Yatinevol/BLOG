@@ -4,6 +4,7 @@ import ApiError from "../utils/ApiError.js"
 import uploadOnCloudinary from "../utils/cloudinary.js";
 import { Blog } from "../models/blog.models.js";
 import ApiResponse from "../utils/ApiResponse.js";
+import extractFileNameFromUrl from "../utils/extractFileName.js";
 
 const addBlog = asyncHandler(async (req,res)=>{
     const {title, description} = req.body;
@@ -78,5 +79,24 @@ const updateBlog = asyncHandler(async(req,res)=>{
         new ApiResponse(200,newBlog,"Your Blog updated successfully:)")
     )
 
+})
+
+const deleteBlog = asyncHandler(async(req, res)=>{
+    const blogId = req.params
+    if(!blogId) throw new ApiError(400,"Blog not found");
+    const blog = await Blog.findById(blogId)
+
+    if(!blog) throw new ApiError(400,"Blog not found");
+    if(blog.thumbnail){
+    try {
+        const fileName = extractFileNameFromUrl(blog.thumbnail);
+        await uploadOnCloudinary.destroy(fileName)
+    } catch (error) {
+        throw new ApiError(500,error || "bhai delete nhi ho pa rha hai blog")
+    }
+    }
+
+    await Blog.findByIdAndDelete(blogId)
+    return res.status(200).json(200,"Your blog has been deleted!")
 })
 export {addBlog,updateBlog}
