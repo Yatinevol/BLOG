@@ -99,4 +99,73 @@ const deleteBlog = asyncHandler(async(req, res)=>{
     await Blog.findByIdAndDelete(blogId)
     return res.status(200).json(200,"Your blog has been deleted!")
 })
-export {addBlog,updateBlog}
+
+const getAllBlog = asyncHandler(async(req,res)=>{
+    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+
+    // Convert pagination parameters to numbers
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skipAmt = (pageNum - 1) * limitNum;
+
+    // Build filter object
+    const filter = {};
+    if (query) {
+        filter.title = { $regex: query, $options: "i" };
+    }
+    if (userId) {
+        filter.userId = userId;
+    }
+
+    // Build sort criteria
+    const sort = {};
+    if (sortBy) {
+        sort[sortBy] = sortType === 'desc' ? -1 : 1;
+    } else {
+        // Default sort by createdAt in descending order if no sort specified
+        sort.createdAt = -1;
+    }
+
+    try {
+        // Find all blogs with filter, sort and pagination
+        const blogs = await Blog.find(filter)
+            .sort(sort)
+            .skip(skipAmt)
+            .limit(limitNum);
+
+        if (!blogs || blogs.length === 0) {
+            throw new ApiError(400, "No blogs found");
+        }
+
+        // Get total count of blogs for pagination
+        const totalBlogs = await Blog.countDocuments(filter);
+
+        // Prepare pagination info
+        const pagination = {
+            currentPage: pageNum,
+            totalPages: Math.ceil(totalBlogs / limitNum),
+            totalBlogs
+        };
+
+        return res.status(200).json(
+            new ApiResponse(
+                200, 
+                { blogs, pagination }, 
+                "Blogs retrieved successfully"
+            )
+        );
+
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json(error);
+        }
+        return res.status(500).json(
+            new ApiError(500, "Internal server error")
+        );
+    }
+})
+export {addBlog,updateBlog,deleteBlog}
+
+
+
+
