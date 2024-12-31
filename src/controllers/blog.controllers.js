@@ -168,6 +168,34 @@ const getAllBlog = asyncHandler(async(req,res)=>{
         );
     }
 })
+
+const likesOnBlog = asyncHandler(async (req,res)=>{
+    const {blogId} = req.params
+    const blog = await Blog.findById(blogId)
+    if(!blog ) throw new ApiError(400,"Blog not found")
+    
+    const liked = await Blog.aggregate([{
+        $match:{
+            // if blogId is string casting it into actual id
+            _id: new mongoose.Types.ObjectId(blogId)
+        }
+    },
+    {
+        $lookup:{
+            from:"likes",
+            localField:"_id",
+            foreignField:"blog",
+            as:"likes"
+        }
+    },{
+        $addFields:{
+            likesCount:{
+                $size:"$likes"
+            }
+        }
+    }])
+    
+})
 export {addBlog,updateBlog,deleteBlog,getAllBlog}
 
 

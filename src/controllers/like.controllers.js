@@ -4,7 +4,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
-const toggleLike = asyncHandler(async(req,res)=>{
+const toggleBlogLike = asyncHandler(async(req,res)=>{
     const {blogId} = req.params
     const blog = await Blog.findById(blogId)
     if(!blog) throw new ApiError(400,"Blog not found")
@@ -26,4 +26,7 @@ const toggleLike = asyncHandler(async(req,res)=>{
    return res.status(200).json(new ApiResponse(200,liked,"Blog liked successfully"))
 })
 
-export {toggleLike}
+const toggleCommentLike=asyncHandler(async(req,res)=>{})
+
+
+export {toggleBlogLike}
