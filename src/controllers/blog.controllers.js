@@ -111,7 +111,11 @@ const getAllBlog = asyncHandler(async(req,res)=>{
     // Build filter object
     const filter = {};
     if (query) {
-        filter.title = { $regex: query, $options: "i" };
+        filter.$or = [
+            { title: { $regex: query, $options: "i" } },
+            { content: { $regex: query, $options: "i" } }
+            
+        ];
     }
     if (userId) {
         filter.userId = userId;
@@ -164,7 +168,7 @@ const getAllBlog = asyncHandler(async(req,res)=>{
         );
     }
 })
-export {addBlog,updateBlog,deleteBlog}
+export {addBlog,updateBlog,deleteBlog,getAllBlog}
 
 
 
