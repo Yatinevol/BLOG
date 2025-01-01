@@ -49,7 +49,7 @@ const updateComment = asyncHandler(async(req, res)=>{
     // })
     
     // if(!oldComment) throw new ApiError(400,"Blog not found")
-    find
+    
     const comment = await Comment.findOneAndUpdate(
         // i did not know that u can pass an object instead of only _id
         {
@@ -89,4 +89,32 @@ const deleteComment = asyncHandler(async(req, res)=>{
     return res.status(200).json(new ApiResponse(200,null,"Comment deleted Successfully!"))
 
 })
-export {createComment, updateComment, deleteComment}
+
+const getAllComments = asyncHandler(async(req, res)=>{
+    const {blogId} = req.params
+    const {page=1, limit=10}= req.query
+    const pageNum = parseInt(page,10)
+    const limitNum= parseInt(limit,10)
+    const skipAmt = (pageNum - 1) * limitNum;
+
+
+    const blog = await Blog.findById(blogId)
+    if(!blog) {
+        throw new ApiError(400,"Blog not found")
+    }
+
+    const comments = await Comment.find({blog:blogId})
+                                  .populate("owner","username email")
+                                  .sort({createdAt: -1})
+                                  .skip(skipAmt)
+                                  .limit(limitNum)
+
+    const totalComments = await Comment.countDocuments({blog: blogId})
+    const pagination = {
+        currentPage : pageNum,
+        totatPages : Math.ceil(totalComments / limitNum),
+        totalComments
+    }
+    return res.status(200).json(new ApiResponse(200,{comments, pagination},"comments retrieved successfully"))
+})
+export {createComment, updateComment, deleteComment, getAllComments}
