@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { toggleBlogLike } from "../controllers/like.controllers.js";
+import { toggleBlogLike } from "../controllers/like.controller.js";
 import verifyJWT from "../middlewares/auth.middlewares.js";
 
 const router = Router()

@@ -5,7 +5,7 @@ import uploadOnCloudinary from "../utils/cloudinary.js";
 import { Blog } from "../models/blog.models.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import extractFileNameFromUrl from "../utils/extractFileName.js";
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 const addBlog = asyncHandler(async (req,res)=>{
     const {title, description} = req.body;
     if(!title || !description){
@@ -194,7 +194,7 @@ const likesOnBlogId = asyncHandler(async (req,res)=>{
                 $size:"$likes"
             },
             likedStatus:{
-                $in: [new mongoose.Types.ObjectId(req.user._id),"$likes.likedby"]
+                $in: [req.user._id,"$likes.likedby"]
             }
         }
     }])
