@@ -36,8 +36,8 @@ const createComment = asyncHandler(async(req,res)=>{
 })
 
 const updateComment = asyncHandler(async(req, res)=>{
-    const {blogId, commentId} = req.params
-    const {content} = req.body
+    const { commentId } = req.params
+    const { content } = req.body
     const userId = req.user._id
     if(!content?.trim()){
         throw new ApiError(400,"Content not found to post")
@@ -49,8 +49,8 @@ const updateComment = asyncHandler(async(req, res)=>{
     // })
     
     // if(!oldComment) throw new ApiError(400,"Blog not found")
-    
-    const comment = await Comment.findByIdAndUpdate(
+    find
+    const comment = await Comment.findOneAndUpdate(
         // i did not know that u can pass an object instead of only _id
         {
             _id: commentId,
@@ -72,4 +72,21 @@ const updateComment = asyncHandler(async(req, res)=>{
     
     return res.status(200).json(new ApiResponse(200,comment,"Comment updated successfully!"))
 })
-export {createComment, updateComment}
+
+const deleteComment = asyncHandler(async(req, res)=>{
+    const {commentId} = req.params
+    const userId = req.user._id
+
+    const deletedComment = await Comment.findOneAndDelete({
+        _id:commentId,
+        owner:userId
+    })
+
+    if(!deletedComment){
+        throw new ApiError(400,"Comment not found or you're not authorized to delete this comment")
+    }
+    
+    return res.status(200).json(new ApiResponse(200,null,"Comment deleted Successfully!"))
+
+})
+export {createComment, updateComment, deleteComment}
