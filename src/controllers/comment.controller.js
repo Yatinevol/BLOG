@@ -1,5 +1,6 @@
 import { Blog } from "../models/blog.models.js";
 import { Comment } from "../models/comment.models.js";
+import { Like } from "../models/like.models.js";
 import { User } from "../models/user.models.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
@@ -120,5 +121,27 @@ const getAllComments = asyncHandler(async(req, res)=>{
 
 const likeComment = asyncHandler(async(req, res)=>{
     
+})
+
+const commentLikeStatus = asyncHandler(async(req,res)=>{
+    const {commentId} = req.params
+    const userId = req.user._id
+
+    const comment = await Comment.findById(commentId)
+    if(!comment){
+        throw new ApiError(400,"Comment not found")
+    }
+
+    const liked = await Like.findOne({
+        comment:commentId,
+        likedby:userId
+    }).populate("comment", "blog author title description")
+
+    if(!liked){
+        throw new ApiError(400,"Like not found")
+    }
+    return res.status(200).json(
+        new ApiResponse(200,{liked, likeStatus:true})
+    )
 })
 export {createComment, updateComment, deleteComment, getAllComments}
