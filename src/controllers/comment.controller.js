@@ -117,4 +117,8 @@ const getAllComments = asyncHandler(async(req, res)=>{
     }
     return res.status(200).json(new ApiResponse(200,{comments, pagination},"comments retrieved successfully"))
 })
+
+const likeComment = asyncHandler(async(req, res)=>{
+    
+})
 export {createComment, updateComment, deleteComment, getAllComments}
